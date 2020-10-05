@@ -1,0 +1,62 @@
+version: "2"
+services:
+  app:
+    build: .
+    restart: always
+    command: python run.py
+    links:
+      - db
+      - rabbitmq
+    ports:
+      - "5000:5000"
+
+  worker:
+      build: .
+      command: celery -A celery_broker.celery worker --loglevel=INFO
+      user: nobody
+      volumes:
+        - .:/airports
+      links:
+        - rabbitmq
+        - db
+        - app
+      depends_on:
+        - app
+      environment:
+        C_FORCE_ROOT: "true"
+  db:
+    hostname: dbmysql
+    image: mysql:5.7
+    ports:
+      - "32000:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: airports_db
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+
+    # env_file: my.cnf
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+  
+  db_manager:
+      depends_on:
+       - db
+      image: phpmyadmin/phpmyadmin
+      container_name: phpmyadmin
+      restart: always
+      ports:
+       - '8080:80'
+      environment:
+        PMA_HOST: db
+  
+  rabbitmq:
+    image: 'rabbitmq:3-management'
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: myuser
+      RABBITMQ_DEFAULT_PASS: mypassword
+      RABBITMQ_DEFAULT_VHOST: "/"
