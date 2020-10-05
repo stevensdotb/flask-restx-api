@@ -1,6 +1,4 @@
 CREATE DATABASE IF NOT EXISTS airports_db;
--- CREATE USER 'passnfly'@'localhost' IDENTIFIED BY 'pass1234';
--- GRANT ALL PRIVILEGES ON airports_db . * TO 'passnfly'@'localhost';
 USE airports_db;
 
 CREATE TABLE airports (
